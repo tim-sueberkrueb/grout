@@ -1,0 +1,78 @@
+# -*- coding: utf-8 -*-
+
+import os
+
+from .scriptable import Scriptable
+from .container import Container
+
+from typing import List, Dict
+
+
+class Job(Scriptable):
+    _artifacts_path = '/tmp/grout'
+
+    def __init__(self, name: str, source: str, scripts: Dict[str, str]=None):
+        super().__init__(scripts)
+        self._name = name
+        self._source = source
+        self._source_type = 'local'
+        # Detect source type
+        if self.source.endswith('.git'):
+            self._source_type = 'git'
+        else:
+            self._source_type = 'local'
+        self._artifacts = []
+        # Create artifacts dir if it doesn't exist
+        if not os.path.isdir(self._artifacts_path):
+            os.mkdir(self._artifacts_path)
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def source(self) -> str:
+        return self._source
+
+    @property
+    def artifacts(self) -> List[str]:
+        return self._artifacts
+
+    def setup(self, c: Container, run_script=True):
+        c.log('Setting up {} ...'.format(self._name))
+        # Default preparation steps
+        c.log('Cleaning up {} ...'.format(self._path))
+        c.exec('rm', '-rf', self._path)
+        c.exec('mkdir', '-p', self._path)
+        # Preparing source
+        if self._source_type == 'git':
+            c.log('Cloning source repository ...')
+            c.exec('git', 'clone', self._source, self._path)
+        elif self._source_type == 'local':
+            c.log('Copying sources to container ...')
+            c.push(self._source, self._path)
+        # Run script
+        if run_script:
+            self._run_script('setup', c)
+
+    def perform(self, c: Container, run_script=True):
+        c.log('Performing {} ...'.format(self._name))
+        # Run script
+        if run_script:
+            self._run_script('perform', c)
+
+    def finish(self, c: Container, run_script=True):
+        c.log('Finishing {}...'.format(self._name))
+        # Run script
+        if run_script:
+            self._run_script('finish', c)
+
+    @property
+    def _path(self) -> str:
+        return os.path.join('/home/grout', self._name)
+
+    def _path_join(self, path) -> str:
+        return os.path.join(self._path, path)
+
+    def _add_artifact(self, filepath: str):
+        self._artifacts.append(filepath)

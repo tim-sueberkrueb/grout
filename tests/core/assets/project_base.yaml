@@ -1,0 +1,19 @@
+name: test-project
+summary: Test project
+description: A test project
+environment:
+  scripts:
+    setup: |
+      container.exec("touch", "/home/grout/environment_setup")
+jobs:
+  - name: job0
+    type: base
+    source: .
+    scripts:
+      setup: |
+        container.exec("touch", "/home/grout/job_setup")
+        this._name = "setup" + "-" + "name"
+      perform: |
+        container.exec("touch", "/home/grout/job_perform")
+      finish: |
+        container.exec("touch", "/home/grout/job_finish")

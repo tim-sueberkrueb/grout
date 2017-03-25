@@ -1,0 +1,22 @@
+name: test-project
+jobs:
+  - name: gnu-hello
+    type: snapcraft
+    source: .
+    source-type: local
+    scripts:
+      finish: |
+        import subprocess
+        import os.path
+
+        assert len(this.artifacts) == 1
+
+        extracted_contents_path = os.path.join(this._artifacts_path, 'snap_contents')
+
+        subprocess.check_call([
+          'unsquashfs', '-f', '-d',
+          extracted_contents_path,
+          this.artifacts[0]
+        ])
+
+        assert os.path.isdir(os.path.join(extracted_contents_path, 'bin'))
