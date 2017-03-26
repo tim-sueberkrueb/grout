@@ -50,7 +50,6 @@ class ExecGenerator:
             val = self._env[env_var]
             cmd += ['--env', '{}={}'.format(env_var, val)]
         cmd += ['--', self._command] + self._args
-        print(*cmd, sep=' ')
         p = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
@@ -59,7 +58,7 @@ class ExecGenerator:
             yield line.decode()
         exit_code = p.wait()
         if exit_code:
-            raise subprocess.CalledProcessError(exit_code, [self._command] + self._args)
+            raise subprocess.CalledProcessError(exit_code, cmd)
         self._exit_code = exit_code
 
     def _expand_env(self):
@@ -76,7 +75,6 @@ class ExecGenerator:
                 custom_val = self._env[custom_var]
                 val = val.replace('${}'.format(custom_var), custom_val)
             self._env[var] = val.rstrip(':')
-        print(self._env)
 
     @property
     def exit_code(self) -> int:
