@@ -46,7 +46,7 @@ def load_project(filename: str) -> Project:
             source = data_job['source']
             source_type = sources.source_type(source)
             if source_type == 'local':
-                source = os.path.join(filedir, source)
+                source = os.path.abspath(os.path.join(filedir, source))
             if 'scripts' in data_job:
                 data_job_scripts = data_job['scripts']
                 assert type(data_job_scripts) == dict
