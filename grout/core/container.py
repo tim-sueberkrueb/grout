@@ -4,7 +4,7 @@ import subprocess
 import time
 import pylxd
 
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Dict
 
 from . import project
 
@@ -32,19 +32,25 @@ class ExecResult:
 
 
 class ExecGenerator:
-    def __init__(self, name: str, command: str, *args, path: str = None):
+    def __init__(self, name: str, command: str, *args, path: str = None, envvars: Dict[str, str]=None):
         self._exit_code = -1
         self._output = ''
         self._name = name
         self._command = command
         self._args = list(args)
         self._path = path
+        self._env = envvars or {}
+        self._expand_env()
 
     def __iter__(self):
         cmd = ['lxc', 'exec', self._name]
         if self._path:
             cmd += ['--env', 'HOME={}'.format(self._path)]
+        for env_var in self._env.keys():
+            val = self._env[env_var]
+            cmd += ['--env', '{}={}'.format(env_var, val)]
         cmd += ['--', self._command] + self._args
+        print(*cmd, sep=' ')
         p = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
@@ -55,6 +61,22 @@ class ExecGenerator:
         if exit_code:
             raise subprocess.CalledProcessError(exit_code, [self._command] + self._args)
         self._exit_code = exit_code
+
+    def _expand_env(self):
+        default_env = {
+            'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+            'LD_LIBRARY_PATH': ''
+        }
+        for var in self._env.keys():
+            val = self._env[var]
+            for def_var in default_env.keys():
+                def_val = default_env[def_var]
+                val = val.replace('${}'.format(def_var), def_val)
+            for custom_var in self._env.keys():
+                custom_val = self._env[custom_var]
+                val = val.replace('${}'.format(custom_var), custom_val)
+            self._env[var] = val.rstrip(':')
+        print(self._env)
 
     @property
     def exit_code(self) -> int:
@@ -178,8 +200,8 @@ class Container:
         self._ready = False
 
     @_require_ready
-    def exec(self, command, *args, path: str = None) -> ExecResult:
-        gen = ExecGenerator(self._name, command, *args, path=path)
+    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> ExecResult:
+        gen = ExecGenerator(self._name, command, *args, path=path, envvars=envvars)
         for line in gen:
             self.log(line)
         return gen.result

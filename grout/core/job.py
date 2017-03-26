@@ -10,12 +10,14 @@ from typing import List, Dict
 
 class Job(Scriptable):
     _artifacts_path = '/tmp/grout'
+    _home = '/home/grout'
 
-    def __init__(self, name: str, source: str, scripts: Dict[str, str]=None):
+    def __init__(self, name: str, source: str, scripts: Dict[str, str]=None, envvars: Dict[str, str]=None):
         super().__init__(scripts)
         self._name = name
         self._source = source
         self._source_type = 'local'
+        self._envvars = envvars
         # Detect source type
         if self.source.endswith('.git'):
             self._source_type = 'git'
@@ -43,14 +45,16 @@ class Job(Scriptable):
         # Default preparation steps
         c.log('Cleaning up {} ...'.format(self._path))
         c.exec('rm', '-rf', self._path)
-        c.exec('mkdir', '-p', self._path)
         # Preparing source
         if self._source_type == 'git':
             c.log('Cloning source repository ...')
             c.exec('git', 'clone', self._source, self._path)
         elif self._source_type == 'local':
             c.log('Copying sources to container ...')
-            c.push(self._source, self._path)
+            c.push(self._source, os.path.join(self._path, '..'))
+            source_dir = self._source[self.source.rfind('/')+1:]
+            if self._name != source_dir:
+                c.exec('mv', os.path.join(self._home, source_dir), self._path)
         # Run script
         if run_script:
             self._run_script('setup', c)
@@ -69,7 +73,7 @@ class Job(Scriptable):
 
     @property
     def _path(self) -> str:
-        return os.path.join('/home/grout', self._name)
+        return os.path.join(self._home, self._name)
 
     def _path_join(self, path) -> str:
         return os.path.join(self._path, path)

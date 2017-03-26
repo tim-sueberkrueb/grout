@@ -54,10 +54,16 @@ def load_project(filename: str) -> Project:
                     script = data_job_scripts[name]
                     assert type(script) == str
                     job_scripts[name] = data_job_scripts[name]
+            job_envvars = None
+            if 'envvars' in data_job:
+                data_job_envvars = data_job['envvars']
+                assert type(data_job_envvars) == dict
+                job_envvars = data_job_envvars
             job = _job_by_type(data_job['type'])(
                 name=data_job['name'],
                 source=source,
-                scripts=job_scripts
+                scripts=job_scripts,
+                envvars=job_envvars
             )
             jobs.append(job)
 

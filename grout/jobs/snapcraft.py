@@ -24,7 +24,7 @@ class SnapcraftJob(Job):
 
     def perform(self, c: Container, run_script: bool=True):
         super().perform(c, run_script=False)
-        c.exec('snapcraft', 'snap', '-o', self._snap_filename, path=self._path)
+        c.exec('snapcraft', 'snap', '-o', self._snap_filename, path=self._path, envvars=self._envvars)
         # Run script
         if run_script:
             self._run_script('perform', c)
