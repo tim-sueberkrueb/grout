@@ -56,10 +56,13 @@ class ExecGenerator:
         for line in p.stdout:
             self._output += line.decode()
             yield line.decode()
+        for line in p.stderr:
+            self._output += line.decode()
+            yield line.decode()
         exit_code = p.wait()
+        self._exit_code = exit_code
         if exit_code:
             raise subprocess.CalledProcessError(exit_code, cmd)
-        self._exit_code = exit_code
 
     def _expand_env(self):
         default_env = {
