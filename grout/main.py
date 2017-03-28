@@ -16,7 +16,8 @@ import grout.core
 @click.option('--container-arch', default=None, help='Container arch')
 @click.option('--container-ephemeral', 'container_ephemeral', flag_value=True, help='Set container ephemeral')
 @click.option('--container-persistent', 'container_ephemeral', flag_value=False, help='Set container persistent')
-@click.option('--skip', 'skip_jobs', default=None, multiple=True, help='Skip a list of jobs by name separated by spaces')
+@click.option('--skip', 'skip_jobs', default=None, multiple=True,
+              help='Skip a list of jobs by name separated by spaces')
 @click.option('--skip-environment', 'skip_environment', flag_value=True, help='Skip environment setup')
 def main(path: str = None, project_file: str = 'project.yaml',
          container_name: str = None, container_image: str = None,
