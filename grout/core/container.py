@@ -4,7 +4,7 @@ import subprocess
 import time
 import pylxd
 
-from typing import List, Callable, Any, Dict
+from typing import List, Callable, Any, Dict, Tuple
 
 from . import project
 
@@ -167,32 +167,35 @@ class Container:
         self._prepare()
 
     @_require_ready
-    def run(self):
-        self.setup()
-        self.perform()
-        self.finish()
+    def run(self, skip_jobs: Tuple[str]=None, skip_environment: bool=False):
+        self.setup(skip_jobs=skip_jobs, skip_environment=skip_environment)
+        self.perform(skip_jobs=skip_jobs)
+        self.finish(skip_jobs=skip_jobs)
 
     @_require_ready
-    def setup(self):
+    def setup(self, skip_jobs: Tuple[str]=None, skip_environment: bool=False):
         env = self._project.environment
-        if env:
+        if env and not skip_environment:
             self.log('Setting up the project environment ...')
             env.setup(self)
         self.log('Setting up jobs ...')
         for job in self._project.jobs:
-            job.setup(self)
+            if not skip_jobs or job not in skip_jobs:
+                job.setup(self)
 
     @_require_ready
-    def perform(self):
+    def perform(self, skip_jobs: Tuple[str]=None):
         self.log('Performing jobs ...')
         for job in self._project.jobs:
-            job.perform(self)
+            if not skip_jobs or job not in skip_jobs:
+                job.perform(self)
 
     @_require_ready
-    def finish(self):
+    def finish(self, skip_jobs: Tuple[str]=None):
         self.log('Finishing ...')
         for job in self._project.jobs:
-            job.finish(self)
+            if not skip_jobs or job not in skip_jobs:
+                job.finish(self)
 
     @_require_ready
     def destroy(self):
