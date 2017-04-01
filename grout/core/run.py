@@ -12,6 +12,8 @@ def run(project: Project, backend_type: str = None, backend_options: Dict = None
     container = Container(project, backend_type=backend_type, backend_options=backend_options)
     container.init()
     container.run(skip_jobs=skip_jobs, skip_environment=skip_environment)
+    if container.ephemeral:
+        container.destroy()
 
 
 def run_declarative(filename: str, backend_type: str = None, backend_options: Dict=None,
