@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from .container import Container, NotReadyError, NetworkError
+from .container import Container
+from .backend import NotReadyError, NetworkError
 from .environment import Environment
 from .job import Job
 from .project import Project

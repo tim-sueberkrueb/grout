@@ -9,23 +9,24 @@ from grout.core import Container, NotReadyError
 
 
 class ContainerTestCase(unittest.TestCase):
-    _test_container_name = 'test-case-container'
+    _test_backend_options = {
+        'name': 'test-case-container'
+    }
     _temp_dir = os.path.join('/tmp', 'grout-tests')
 
-    def test_properties(self):
+    def test_options(self):
         p = Project()
-        name = self._test_container_name
         c = Container(
-            p, name=name
+            p, backend_options=self._test_backend_options
         )
-        self.assertEqual(c.name, name)
+        self.assertEqual(c.name, self._test_backend_options['name'])
         self.assertFalse(c.ready)
 
     def test_run(self):
         # Setup
         p = Project()
         c = Container(
-            p, self._test_container_name
+            p, backend_options=self._test_backend_options
         )
         c.init()
         self.assertEqual(c.ready, True)
@@ -52,7 +53,7 @@ class ContainerTestCase(unittest.TestCase):
 
     def test_not_ready(self):
         p = Project()
-        c = Container(p, self._test_container_name)
+        c = Container(p, backend_options=self._test_backend_options)
         self.assertFalse(c.ready)
         methods = (
             c.run, c.setup, c.perform, c.finish,

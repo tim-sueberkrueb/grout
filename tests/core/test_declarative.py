@@ -9,7 +9,9 @@ from grout.core import load_project
 
 
 class DeclarativeTestCase(unittest.TestCase):
-    _test_container_name = 'test-case-container'
+    _test_backend_options = {
+        'name': 'test-case-container'
+    }
     _assets_path = os.path.join(os.path.dirname(__file__), 'assets')
 
     def test_load_project(self):
@@ -25,7 +27,7 @@ class DeclarativeTestCase(unittest.TestCase):
         self.assertEqual(job.name, 'job0')
 
         # Test run
-        c = Container(p, self._test_container_name)
+        c = Container(p, backend_options=self._test_backend_options)
         c.init()
         c.setup()
         c.exec('rm', '/home/grout/job_setup')
