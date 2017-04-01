@@ -6,6 +6,7 @@ Grout was primarily designed to be used in combination with Snapcraft.
 ### Dependencies
 
 * `Python >= 3.5`
+    * with all modules listed as `install_requires` in `setup.py`
 * One of the following backends:
     * [LXC](https://linuxcontainers.org/)
     * [Docker](https://www.docker.com/)
