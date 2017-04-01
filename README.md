@@ -1,7 +1,14 @@
 ## Grout
 
-Python tool and library for continuous, clean builds using LXC/LXD.
+Python tool and library for continuous, clean builds.
 Grout was primarily designed to be used in combination with Snapcraft.
+
+### Dependencies
+
+* `Python >= 3.5`
+* One of the following backends:
+    * [LXC](https://linuxcontainers.org/)
+    * [Docker](https://www.docker.com/)
 
 ### Install
 ```sh
