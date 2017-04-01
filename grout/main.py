@@ -40,7 +40,7 @@ def main(path: str = None, project_file: str = 'project.yaml',
         'ephemeral': backend_ephemeral
     }
     grout.core.run_declarative(
-        filepath, backend_options=backend_options,
+        filepath, backend_type=backend_type, backend_options=backend_options,
         skip_jobs=skip_jobs, skip_environment=skip_environment
     )
 

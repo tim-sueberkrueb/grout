@@ -35,7 +35,7 @@ class BaseBackend(metaclass=abc.ABCMeta):
         # Apply default options
         default_options = self._default_options
         for def_key in default_options:
-            if def_key not in self._options:
+            if def_key not in self._options or not self._options[def_key]:
                 self._options[def_key] = default_options[def_key]
 
     @property

@@ -4,10 +4,12 @@ from typing import Type
 
 from .base import BaseBackend, ExecResult, NotReadyError, NetworkError
 from .lxc import LXCBackend
+from .docker import DockerBackend
 
 
 _type_map = {
-    'lxc': LXCBackend
+    'lxc': LXCBackend,
+    'docker': DockerBackend
 }
 
 
