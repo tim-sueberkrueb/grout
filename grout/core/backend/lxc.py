@@ -63,7 +63,11 @@ class _ExecGenerator:
                     if not data:
                         del readable[fd]
                     else:
-                        readable[fd](data.decode())
+                        try:
+                            readable[fd](data.decode())
+                        except UnicodeDecodeError as e:
+                            # Ignore not decodable data with a warning
+                            print('Warning (detected not decodable data): ' + str(e))
         if proc.returncode:
             raise subprocess.CalledProcessError(proc.returncode, cmd)
         for fd in masters:
