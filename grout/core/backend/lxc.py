@@ -5,7 +5,6 @@ from typing import Dict, List, Callable
 import subprocess
 import time
 import pylxd
-import tempfile
 import pty
 import os
 import errno
