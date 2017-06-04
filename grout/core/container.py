@@ -64,21 +64,21 @@ class Container:
             env.setup(self)
         self.log('Setting up jobs ...')
         for job in self._project.jobs:
-            if not skip_jobs or job not in skip_jobs:
+            if not skip_jobs or (job.name not in skip_jobs and job.name + '.setup' not in skip_jobs):
                 job.setup(self)
 
     @_require_ready
     def perform(self, skip_jobs: Tuple[str]=None):
         self.log('Performing jobs ...')
         for job in self._project.jobs:
-            if not skip_jobs or job not in skip_jobs:
+            if not skip_jobs or (job.name not in skip_jobs and job.name + '.perform' not in skip_jobs):
                 job.perform(self)
 
     @_require_ready
     def finish(self, skip_jobs: Tuple[str]=None):
         self.log('Finishing ...')
         for job in self._project.jobs:
-            if not skip_jobs or job not in skip_jobs:
+            if not skip_jobs or (job.name not in skip_jobs and job.name + '.finish' not in skip_jobs):
                 job.finish(self)
 
     @_require_ready
