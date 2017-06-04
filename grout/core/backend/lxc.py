@@ -6,6 +6,10 @@ import subprocess
 import time
 import pylxd
 import tempfile
+import pty
+import os
+import errno
+import select
 
 from . import base
 
@@ -32,45 +36,40 @@ class _ExecGenerator:
             val = self._env[env_var]
             cmd += ['--env', '{}={}'.format(env_var, val)]
         cmd += ['--', self._command] + self._args
-        timeout = (1/20)
-        with tempfile.TemporaryFile() as stdout_file, tempfile.TemporaryFile() as stderr_file:
-            stdout_file.seek(0)
-            stderr_file.seek(0)
-            p = subprocess.Popen(
-                cmd, stdout=stdout_file, stderr=stderr_file)
-            while p.poll() is None:
-                stdout_pos = stdout_file.tell()
-                stdout_output = stdout_file.read().decode()
-                if not stdout_output:
-                    stdout_file.seek(stdout_pos)
+
+        # Adopted from https://stackoverflow.com/a/31953436
+        masters, slaves = zip(pty.openpty(), pty.openpty())
+        proc = subprocess.Popen(
+            cmd, stdin=slaves[0], stdout=slaves[0], stderr=slaves[1]
+        )
+        for fd in slaves:
+            # We don't provide any input, thus close
+            os.close(fd)
+        readable = {
+            masters[0]: self._stdout,
+            masters[1]: self._stderr,
+        }
+        while readable:
+            for fd in select.select(readable, [], [])[0]:
+                try:
+                    # Read available data
+                    data = os.read(fd, 1024)
+                except OSError as e:
+                    # EIO means EOF on some systems
+                    if e.errno != errno.EIO:
+                        raise
+                    del readable[fd]
                 else:
-                    self._output += stdout_output
-                    if self._stdout:
-                        self._stdout(stdout_output)
-                stderr_pos = stderr_file.tell()
-                stderr_output = stderr_file.read().decode()
-                if not stderr_output:
-                    stderr_file.seek(stderr_pos)
-                else:
-                    self._output += stderr_output
-                    if self._stderr:
-                        self._stderr(stderr_output)
-                if not stdout_output and not stderr_output:
-                    time.sleep(timeout)
-            last_stdout = stdout_file.read().decode()
-            if last_stdout:
-                self._output += last_stdout
-                if self._stdout:
-                    self._stdout(last_stdout)
-            last_stderr = stderr_file.read().decode()
-            if last_stderr:
-                self._output += last_stderr
-                if self._stderr:
-                    self._stderr(last_stderr)
-            exit_code = p.returncode
-            self._exit_code = exit_code
-            if exit_code:
-                raise subprocess.CalledProcessError(exit_code, cmd)
+                    # Reached EOF
+                    if not data:
+                        del readable[fd]
+                    else:
+                        readable[fd](data.decode())
+        if proc.returncode:
+            raise subprocess.CalledProcessError(proc.returncode, cmd)
+        for fd in masters:
+            os.close(fd)
+        self._exit_code = proc.wait()
 
     def _expand_env(self):
         default_env = {
