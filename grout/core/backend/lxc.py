@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from typing import Dict, List
+from typing import Dict, List, Callable
 
 import subprocess
 import time
 import pylxd
+import tempfile
 
 from . import base
 
 
 class _ExecGenerator:
-    def __init__(self, name: str, command: str, *args, path: str = None, envvars: Dict[str, str]=None):
+    def __init__(self, name: str, command: str, *args, path: str = None, envvars: Dict[str, str]=None,
+                 stdout: Callable=None, stderr: Callable=None):
         self._exit_code = -1
         self._output = ''
         self._name = name
@@ -19,8 +21,10 @@ class _ExecGenerator:
         self._path = path
         self._env = envvars or {}
         self._expand_env()
+        self._stdout = stdout
+        self._stderr = stderr
 
-    def __iter__(self):
+    def run(self):
         cmd = ['lxc', 'exec', self._name]
         if self._path:
             cmd += ['--env', 'HOME={}'.format(self._path)]
@@ -28,24 +32,49 @@ class _ExecGenerator:
             val = self._env[env_var]
             cmd += ['--env', '{}={}'.format(env_var, val)]
         cmd += ['--', self._command] + self._args
-        p = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        for line in p.stdout:
-            self._output += line.decode()
-            yield line.decode()
-        for line in p.stderr:
-            self._output += line.decode()
-            yield line.decode()
-        exit_code = p.wait()
-        self._exit_code = exit_code
-        if exit_code:
-            raise subprocess.CalledProcessError(exit_code, cmd)
+        timeout = (1/20)
+        with tempfile.TemporaryFile() as stdout_file, tempfile.TemporaryFile() as stderr_file:
+            stdout_file.seek(0)
+            stderr_file.seek(0)
+            p = subprocess.Popen(
+                cmd, stdout=stdout_file, stderr=stderr_file)
+            while p.poll() is None:
+                stdout_pos = stdout_file.tell()
+                stdout_output = stdout_file.read().decode()
+                if not stdout_output:
+                    stdout_file.seek(stdout_pos)
+                else:
+                    self._output += stdout_output
+                    if self._stdout:
+                        self._stdout(stdout_output)
+                stderr_pos = stderr_file.tell()
+                stderr_output = stderr_file.read().decode()
+                if not stderr_output:
+                    stderr_file.seek(stderr_pos)
+                else:
+                    self._output += stderr_output
+                    if self._stderr:
+                        self._stderr(stderr_output)
+                if not stdout_output and not stderr_output:
+                    time.sleep(timeout)
+            last_stdout = stdout_file.read().decode()
+            if last_stdout:
+                self._output += last_stdout
+                if self._stdout:
+                    self._stdout(last_stdout)
+            last_stderr = stderr_file.read().decode()
+            if last_stderr:
+                self._output += last_stderr
+                if self._stderr:
+                    self._stderr(last_stderr)
+            exit_code = p.returncode
+            self._exit_code = exit_code
+            if exit_code:
+                raise subprocess.CalledProcessError(exit_code, cmd)
 
     def _expand_env(self):
         default_env = {
             'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-            'LD_LIBRARY_PATH': ''
         }
         for var in self._env.keys():
             val = self._env[var]
@@ -128,11 +157,24 @@ class LXCBackend(base.BaseBackend):
                 cmd += ['-e']
             subprocess.check_call(cmd)
             self._lxd_container = self._lxd.containers.get(self._name)
+        # Configure container
+        subprocess.check_call([
+            'lxc', 'config', 'set', self._name,
+            'environment.SNAPCRAFT_SETUP_CORE', '1'])
+        # Necessary to read asset files with non-ascii characters.
+        subprocess.check_call([
+            'lxc', 'config', 'set', self._name,
+            'environment.LC_ALL', 'C.UTF-8'])
+        # Make host user root inside container
+        subprocess.check_call([
+            'lxc', 'config', 'set', self._name,
+            'raw.idmap', 'both 1000 0'
+        ])
         # Start the container (if not already running)
         self._lxd_container.start()
         # Enable most actions
         self._ready = True
-        # Check for netowrk connection
+        # Check for network connection
         self._wait_for_network()
         # Prepare system
         self._prepare()
@@ -143,9 +185,8 @@ class LXCBackend(base.BaseBackend):
         self._ready = False
 
     def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.ExecResult:
-        gen = _ExecGenerator(self._name, command, *args, path=path, envvars=envvars)
-        for line in gen:
-            self.log(line)
+        gen = _ExecGenerator(self._name, command, *args, path=path, envvars=envvars, stdout=self.log, stderr=self.log)
+        gen.run()
         return gen.result
 
     def log(self, *fragments):
