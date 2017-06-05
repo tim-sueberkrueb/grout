@@ -8,71 +8,6 @@ import time
 from . import base
 
 
-class _ExecGenerator:
-    def __init__(self, name: str, command: str, *args, path: str = None, envvars: Dict[str, str]=None):
-        self._exit_code = -1
-        self._output = ''
-        self._name = name
-        self._command = command
-        self._args = list(args)
-        self._path = path
-        self._env = envvars or {}
-        self._expand_env()
-
-    def __iter__(self):
-        cmd = ['docker', 'exec', '-i']
-        for env_var in self._env.keys():
-            val = self._env[env_var]
-            cmd += ['--env', '{}={}'.format(env_var, val)]
-        # HOME is not respected by docker, thus we need
-        # to workaround by calling bash -c
-        bash_command = self._command + ' ' + ' '.join(self._args)
-        if self._path:
-            bash_command = 'cd {} && {}'.format(self._path, bash_command)
-        cmd += [self._name, 'bash', '-c', bash_command]
-        p = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        for line in p.stdout:
-            self._output += line.decode()
-            yield line.decode()
-        for line in p.stderr:
-            self._output += line.decode()
-            yield line.decode()
-        exit_code = p.wait()
-        self._exit_code = exit_code
-        if exit_code:
-            raise subprocess.CalledProcessError(exit_code, cmd)
-
-    def _expand_env(self):
-        default_env = {
-            'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-            'LD_LIBRARY_PATH': ''
-        }
-        for var in self._env.keys():
-            val = self._env[var]
-            for def_var in default_env.keys():
-                def_val = default_env[def_var]
-                val = val.replace('${}'.format(def_var), def_val)
-            for custom_var in self._env.keys():
-                custom_val = self._env[custom_var]
-                val = val.replace('${}'.format(custom_var), custom_val)
-            self._env[var] = val.rstrip(':')
-
-    @property
-    def exit_code(self) -> int:
-        return self._exit_code
-
-    @property
-    def output(self) -> str:
-        return self._output
-
-    @property
-    def result(self) -> base.ExecResult:
-        result = base.ExecResult(self._exit_code, self.output)
-        return result
-
-
 class DockerBackend(base.BaseBackend):
     def __init__(self, container, options: Dict=None):
         super().__init__(container, options)
@@ -132,11 +67,12 @@ class DockerBackend(base.BaseBackend):
         subprocess.check_call(['docker', 'rm', '-f', self._name])
         self._ready = False
 
-    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.ExecResult:
-        gen = _ExecGenerator(self._name, command, *args, path=path, envvars=envvars)
-        for line in gen:
-            self.log(line)
-        return gen.result
+    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.CommandResult:
+        cmd = base.Command(
+            ['docker', 'exec', '-i', self._name], command, *args, path=path, envvars=envvars
+        )
+        cmd.run()
+        return cmd.result
 
     def log(self, *fragments):
         print(*fragments, end='' if fragments[-1].endswith('\n') else '\n')

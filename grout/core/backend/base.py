@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from typing import Dict
+from typing import Dict, Callable, Iterable
 
 import abc
+import pty
+import os
+import errno
+import select
+import subprocess
 
 
 class NotReadyError(Exception):
@@ -13,7 +18,7 @@ class NetworkError(Exception):
     pass
 
 
-class ExecResult:
+class CommandResult:
     def __init__(self, exit_code: int, output: str):
         self._exit_code = exit_code
         self._output = output
@@ -25,6 +30,95 @@ class ExecResult:
     @property
     def output(self) -> str:
         return self._output
+
+
+class Command:
+    def __init__(self, container_command: Iterable, command: str, *args, path: str = None, envvars: Dict[str, str]=None,
+                 stdout: Callable=None, stderr: Callable=None):
+        self._exit_code = -1
+        self._output = ''
+        self._container_command = container_command
+        self._command = command
+        self._args = list(args)
+        self._path = path
+        self._env = envvars or {}
+        self._expand_env()
+        self._stdout = stdout
+        self._stderr = stderr
+
+    def run(self):
+        cmd = self._container_command
+        for env_var in self._env.keys():
+            val = self._env[env_var]
+            cmd += ['--env', '{}={}'.format(env_var, val)]
+        bash_command = self._command + ' ' + ' '.join(self._args)
+        if self._path:
+            bash_command = 'cd {} && {}'.format(self._path, bash_command)
+        cmd += ['bash', '-c', bash_command]
+        # Adopted from https://stackoverflow.com/a/31953436
+        masters, slaves = zip(pty.openpty(), pty.openpty())
+        proc = subprocess.Popen(
+            cmd, stdin=slaves[0], stdout=slaves[0], stderr=slaves[1]
+        )
+        for fd in slaves:
+            # We don't provide any input, thus close
+            os.close(fd)
+        readable = {
+            masters[0]: self._stdout,
+            masters[1]: self._stderr,
+        }
+        while readable:
+            for fd in select.select(readable, [], [])[0]:
+                try:
+                    # Read available data
+                    data = os.read(fd, 1024)
+                except OSError as e:
+                    # EIO means EOF on some systems
+                    if e.errno != errno.EIO:
+                        raise
+                    del readable[fd]
+                else:
+                    # Reached EOF
+                    if not data:
+                        del readable[fd]
+                    else:
+                        try:
+                            readable[fd](data.decode())
+                        except UnicodeDecodeError as e:
+                            # Ignore not decodable data with a warning
+                            print('Warning (detected not decodable data): ' + str(e))
+        if proc.returncode:
+            raise subprocess.CalledProcessError(proc.returncode, cmd)
+        for fd in masters:
+            os.close(fd)
+        self._exit_code = proc.wait()
+
+    def _expand_env(self):
+        default_env = {
+            'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+        }
+        for var in self._env.keys():
+            val = self._env[var]
+            for def_var in default_env.keys():
+                def_val = default_env[def_var]
+                val = val.replace('${}'.format(def_var), def_val)
+            for custom_var in self._env.keys():
+                custom_val = self._env[custom_var]
+                val = val.replace('${}'.format(custom_var), custom_val)
+            self._env[var] = val.rstrip(':')
+
+    @property
+    def exit_code(self) -> int:
+        return self._exit_code
+
+    @property
+    def output(self) -> str:
+        return self._output
+
+    @property
+    def result(self) -> CommandResult:
+        result = CommandResult(self._exit_code, self.output)
+        return result
 
 
 class BaseBackend(metaclass=abc.ABCMeta):

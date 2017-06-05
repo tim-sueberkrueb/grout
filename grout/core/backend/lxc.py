@@ -1,105 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from typing import Dict, List, Callable
+from typing import Dict, List
 
 import subprocess
 import time
 import pylxd
-import pty
-import os
-import errno
-import select
 
 from . import base
-
-
-class _ExecGenerator:
-    def __init__(self, name: str, command: str, *args, path: str = None, envvars: Dict[str, str]=None,
-                 stdout: Callable=None, stderr: Callable=None):
-        self._exit_code = -1
-        self._output = ''
-        self._name = name
-        self._command = command
-        self._args = list(args)
-        self._path = path
-        self._env = envvars or {}
-        self._expand_env()
-        self._stdout = stdout
-        self._stderr = stderr
-
-    def run(self):
-        cmd = ['lxc', 'exec', self._name]
-        if self._path:
-            cmd += ['--env', 'HOME={}'.format(self._path)]
-        for env_var in self._env.keys():
-            val = self._env[env_var]
-            cmd += ['--env', '{}={}'.format(env_var, val)]
-        cmd += ['--', self._command] + self._args
-
-        # Adopted from https://stackoverflow.com/a/31953436
-        masters, slaves = zip(pty.openpty(), pty.openpty())
-        proc = subprocess.Popen(
-            cmd, stdin=slaves[0], stdout=slaves[0], stderr=slaves[1]
-        )
-        for fd in slaves:
-            # We don't provide any input, thus close
-            os.close(fd)
-        readable = {
-            masters[0]: self._stdout,
-            masters[1]: self._stderr,
-        }
-        while readable:
-            for fd in select.select(readable, [], [])[0]:
-                try:
-                    # Read available data
-                    data = os.read(fd, 1024)
-                except OSError as e:
-                    # EIO means EOF on some systems
-                    if e.errno != errno.EIO:
-                        raise
-                    del readable[fd]
-                else:
-                    # Reached EOF
-                    if not data:
-                        del readable[fd]
-                    else:
-                        try:
-                            readable[fd](data.decode())
-                        except UnicodeDecodeError as e:
-                            # Ignore not decodable data with a warning
-                            print('Warning (detected not decodable data): ' + str(e))
-        if proc.returncode:
-            raise subprocess.CalledProcessError(proc.returncode, cmd)
-        for fd in masters:
-            os.close(fd)
-        self._exit_code = proc.wait()
-
-    def _expand_env(self):
-        default_env = {
-            'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-        }
-        for var in self._env.keys():
-            val = self._env[var]
-            for def_var in default_env.keys():
-                def_val = default_env[def_var]
-                val = val.replace('${}'.format(def_var), def_val)
-            for custom_var in self._env.keys():
-                custom_val = self._env[custom_var]
-                val = val.replace('${}'.format(custom_var), custom_val)
-            self._env[var] = val.rstrip(':')
-
-    @property
-    def exit_code(self) -> int:
-        return self._exit_code
-
-    @property
-    def output(self) -> str:
-        return self._output
-
-    @property
-    def result(self) -> base.ExecResult:
-        result = base.ExecResult(self._exit_code, self.output)
-        return result
 
 
 class LXCBackend(base.BaseBackend):
@@ -186,10 +93,13 @@ class LXCBackend(base.BaseBackend):
         subprocess.check_call(['lxc', 'delete', '-f', self._name])
         self._ready = False
 
-    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.ExecResult:
-        gen = _ExecGenerator(self._name, command, *args, path=path, envvars=envvars, stdout=self.log, stderr=self.log)
-        gen.run()
-        return gen.result
+    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.CommandResult:
+        cmd = base.Command(
+            ['lxc', 'exec', self._name], command, *args,
+            path=path, envvars=envvars, stdout=self.log, stderr=self.log
+        )
+        cmd.run()
+        return cmd.result
 
     def log(self, *fragments):
         print(*fragments, end='' if fragments[-1].endswith('\n') else '\n')
