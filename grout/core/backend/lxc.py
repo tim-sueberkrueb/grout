@@ -94,8 +94,9 @@ class LXCBackend(base.BaseBackend):
 
     def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.CommandResult:
         cmd = base.Command(
-            ['lxc', 'exec', self._name, '--'], command, *args,
-            path=path, envvars=envvars, stdout=self.log, stderr=self.log
+            ['lxc', 'exec', self._name], command, *args,
+            path=path, envvars=envvars, stdout=self.log, stderr=self.log,
+            container_command_separator='--'
         )
         cmd.run()
         return cmd.result

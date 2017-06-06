@@ -35,10 +35,11 @@ class CommandResult:
 
 class Command:
     def __init__(self, container_command: Iterable, command: str, *args, path: str = None, envvars: Dict[str, str]=None,
-                 stdout: Callable=None, stderr: Callable=None):
+                 stdout: Callable=None, stderr: Callable=None, container_command_separator=None):
         self._exit_code = -1
         self._output = ''
         self._container_command = container_command
+        self._container_command_separator = container_command_separator
         self._command = command
         self._args = list(args)
         self._path = path
@@ -53,6 +54,8 @@ class Command:
             val = self._env[env_var]
             cmd += ['--env', '{}={}'.format(env_var, val)]
         bash_command = self._command + ' ' + ' '.join(self._args)
+        if self._container_command_separator:
+            cmd += [self._container_command_separator]
         if self._path:
             bash_command = 'cd {} && {}'.format(self._path, bash_command)
         cmd += [
