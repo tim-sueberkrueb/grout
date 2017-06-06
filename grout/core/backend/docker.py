@@ -51,7 +51,7 @@ class DockerBackend(base.BaseBackend):
     def _default_options(self) -> Dict:
         return {
             'name': self._gen_name(),
-            'image': 'ubuntu',
+            'image': 'ubuntu/xenial',
             'arch': 'amd64',
             'ephemeral': True
         }
