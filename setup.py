@@ -12,13 +12,17 @@ setuptools.setup(
     author_email='dev@timsueberkrueb.io',
     url='https://www.github.com/tim-sueberkrueb',
     packages=setuptools.find_packages(),
-    scripts=[
-        'bin/grout'
-    ],
-    install_requires=[
+    package_data={
+        'grout.core': ('validation/project_schema.yaml',)
+    },
+    scripts=(
+        'bin/grout',
+    ),
+    install_requires=(
         'pylxd',
         'pyyaml',
-        'click'
-    ],
+        'click',
+        'pykwalify'
+    ),
     test_suite='tests',
 )

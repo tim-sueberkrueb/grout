@@ -1,0 +1,78 @@
+name: project_schema
+desc: Grout declarative project files yaml schema
+type: map
+map:
+  name:
+    type: str
+    req: true
+  summary:
+    type: str
+    req: false
+  description:
+    type: str
+    req: false
+  environment:
+    type: map
+    req: false
+    map:
+      scripts:
+        type: map
+        req: false
+        map:
+          setup:
+            type: str
+            req: false
+          perform:
+            type: str
+            req: false
+          finish:
+            type: str
+            req: false
+  jobs:
+    type: seq
+    req: true
+    seq:
+      - type: map
+        map:
+          name:
+            type: str
+            req: true
+          summary:
+            type: str
+            req: false
+          description:
+            type: str
+            req: false
+          extends:
+            type: str
+            req: false
+          type:
+            # Deprecated: Use "extends" instead
+            type: str
+            req: false
+          source:
+            type: str
+            req: false
+          source-type:
+            type: str
+            req: false
+            enum: ['local', 'git']
+          envvars:
+            type: map
+            req: false
+            map:
+              regex;(\w+):
+                type: str
+          scripts:
+            type: map
+            req: false
+            map:
+              setup:
+                type: str
+                req: false
+              perform:
+                type: str
+                req: false
+              finish:
+                type: str
+                req: false
