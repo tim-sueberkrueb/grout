@@ -86,7 +86,7 @@ class Container:
         self._backend.destroy()
 
     @_require_ready
-    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> backend.ExecResult:
+    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> backend.CommandResult:
         return self._backend.exec(command, *args, path=path, envvars=envvars)
 
     def log(self, *fragments):
