@@ -176,7 +176,7 @@ class BaseBackend(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> ExecResult:
+    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> CommandResult:
         raise NotImplementedError()
 
     @abc.abstractmethod
