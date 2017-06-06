@@ -19,10 +19,10 @@ import grout.core.backend
 @click.option('--image', 'backend_image', default=None, help='Container backend image')
 @click.option('--arch', 'backend_arch', default=None, help='Container backend arch')
 @click.option('--persistent', 'backend_ephemeral', flag_value=False, help='Set container persistent')
-def main(path: str = None, project_file: str = 'project.yaml',
-         skip_jobs: Tuple[str] = None, skip_environment: bool = False,
-         backend_type: str = 'lxc', backend_name: str = None, backend_image: str = None,
-         backend_arch: str = None, backend_ephemeral: bool = True):
+def cli(path: str = None, project_file: str = 'project.yaml',
+        skip_jobs: Tuple[str] = None, skip_environment: bool = False,
+        backend_type: str = 'lxc', backend_name: str = None, backend_image: str = None,
+        backend_arch: str = None, backend_ephemeral: bool = True):
     """Grout a simple tool and library for continuous, clean builds.
 
     Grout was primarily created to be used in combination with Snapcraft.
@@ -46,4 +46,4 @@ def main(path: str = None, project_file: str = 'project.yaml',
 
 
 if __name__ == '__main__':
-    main()
+    cli()
