@@ -68,7 +68,9 @@ class DockerBackend(base.BaseBackend):
 
     def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.CommandResult:
         cmd = base.Command(
-            ['docker', 'exec', '-i', self._name], command, *args, path=path, envvars=envvars
+            ['docker', 'exec', '-i', self._name], command, *args,
+            path=path, envvars=envvars,
+            stdout=self.log, stderr=self.log
         )
         cmd.run()
         return cmd.result
