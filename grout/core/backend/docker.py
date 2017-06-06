@@ -7,6 +7,22 @@ import subprocess
 from . import base
 
 
+class DockerCommand(base.BaseCommand):
+    def _build_command(self):
+        cmd = ['docker', 'exec', '-i']
+        for env_var in self._env.keys():
+            val = self._env[env_var]
+            cmd += ['--env', '{}={}'.format(env_var, val)]
+        bash_command = self._command + ' ' + ' '.join(self._args)
+        if self._path:
+            bash_command = 'cd {} && {}'.format(self._path, bash_command)
+        cmd += [
+            self._container_name, 'bash', '-c',
+            "'" + bash_command.replace("'", "'\\''") + "'"
+        ]
+        return ' '.join(cmd)
+
+
 class DockerBackend(base.BaseBackend):
     def __init__(self, container, options: Dict=None):
         super().__init__(container, options)
@@ -67,8 +83,8 @@ class DockerBackend(base.BaseBackend):
         self._ready = False
 
     def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.CommandResult:
-        cmd = base.Command(
-            ['docker', 'exec', '-i', self._name], command, *args,
+        cmd = DockerCommand(
+            self._name, command, *args,
             path=path, envvars=envvars,
             stdout=self.log, stderr=self.log
         )

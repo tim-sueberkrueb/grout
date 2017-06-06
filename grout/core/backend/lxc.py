@@ -8,6 +8,18 @@ import pylxd
 from . import base
 
 
+class LXCCommand(base.BaseCommand):
+    def _build_command(self) -> str:
+        cmd = ['lxc', 'exec', self._container_name]
+        if self._path:
+            cmd += ['--env', 'HOME={}'.format(self._path)]
+        for env_var in self._env.keys():
+            val = self._env[env_var]
+            cmd += ['--env', '{}={}'.format(env_var, val)]
+        cmd += ['--', self._command] + self._args
+        return ' '.join(cmd)
+
+
 class LXCBackend(base.BaseBackend):
     def __init__(self, container, options: Dict=None):
         # Initialize LXD client before base initialization
@@ -93,10 +105,9 @@ class LXCBackend(base.BaseBackend):
         self._ready = False
 
     def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.CommandResult:
-        cmd = base.Command(
-            ['lxc', 'exec', self._name], command, *args,
-            path=path, envvars=envvars, stdout=self.log, stderr=self.log,
-            container_command_separator='--'
+        cmd = LXCCommand(
+            self._name, command, *args,
+            path=path, envvars=envvars, stdout=self.log, stderr=self.log
         )
         cmd.run()
         return cmd.result

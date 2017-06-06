@@ -33,13 +33,12 @@ class CommandResult:
         return self._output
 
 
-class Command:
-    def __init__(self, container_command: Iterable, command: str, *args, path: str = None, envvars: Dict[str, str]=None,
-                 stdout: Callable=None, stderr: Callable=None, container_command_separator=None):
+class BaseCommand(abc.ABC):
+    def __init__(self, container_name: str, command: str, *args, path: str = None, envvars: Dict[str, str]=None,
+                 stdout: Callable=None, stderr: Callable=None):
         self._exit_code = -1
         self._output = ''
-        self._container_command = container_command
-        self._container_command_separator = container_command_separator
+        self._container_name = container_name
         self._command = command
         self._args = list(args)
         self._path = path
@@ -48,23 +47,16 @@ class Command:
         self._stdout = stdout
         self._stderr = stderr
 
+    @abc.abstractmethod
+    def _build_command(self) -> str:
+        pass
+
     def run(self):
-        cmd = self._container_command
-        for env_var in self._env.keys():
-            val = self._env[env_var]
-            cmd += ['--env', '{}={}'.format(env_var, val)]
-        bash_command = self._command + ' ' + ' '.join(self._args)
-        if self._container_command_separator:
-            cmd += [self._container_command_separator]
-        if self._path:
-            bash_command = 'cd {} && {}'.format(self._path, bash_command)
-        cmd += [
-            'bash', '-c', "'" + bash_command.replace("'", "'\\''") + "'"
-        ]
+        cmd = self._build_command()
         # Adopted from https://stackoverflow.com/a/31953436
         masters, slaves = zip(pty.openpty(), pty.openpty())
         proc = subprocess.Popen(
-            ' '.join(cmd), shell=True,
+            cmd, shell=True,
             stdin=slaves[0], stdout=slaves[0], stderr=slaves[1]
         )
         for fd in slaves:
