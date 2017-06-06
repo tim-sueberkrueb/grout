@@ -3,7 +3,6 @@
 from typing import Dict, List
 
 import subprocess
-import time
 import pylxd
 
 from . import base
