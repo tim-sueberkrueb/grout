@@ -85,24 +85,6 @@ class DockerBackend(base.BaseBackend):
         source = source.lstrip('/')
         subprocess.check_call(['docker', 'cp', self._name + ':/' + source, dest])
 
-    def _wait_for_network(self):
-        self.log('Waiting for a network connection ...')
-        connected = False
-        retry_count = 25
-        network_probe = 'import urllib.request; urllib.request.urlopen("{}", timeout=5)' \
-            .format('http://start.ubuntu.com/connectivity-check.html')
-        while not connected:
-            time.sleep(1)
-            try:
-                result = self.exec('python3', '-c', network_probe)
-                connected = result.exit_code == 0
-            except subprocess.CalledProcessError:
-                connected = False
-                retry_count -= 1
-                if retry_count == 0:
-                    raise base.NetworkError("No network connection")
-        self.log('Network connection established')
-
     def _prepare(self):
         self.log('Preparing system ...')
         assert self.exec('mkdir', '-p', '/home/grout').exit_code == 0

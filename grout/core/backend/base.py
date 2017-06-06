@@ -8,6 +8,7 @@ import os
 import errno
 import select
 import subprocess
+import time
 
 
 class NotReadyError(Exception):
@@ -54,11 +55,14 @@ class Command:
         bash_command = self._command + ' ' + ' '.join(self._args)
         if self._path:
             bash_command = 'cd {} && {}'.format(self._path, bash_command)
-        cmd += ['bash', '-c', bash_command]
+        cmd += [
+            'bash', '-c', "'" + bash_command.replace("'", "'\\''") + "'"
+        ]
         # Adopted from https://stackoverflow.com/a/31953436
         masters, slaves = zip(pty.openpty(), pty.openpty())
         proc = subprocess.Popen(
-            cmd, stdin=slaves[0], stdout=slaves[0], stderr=slaves[1]
+            ' '.join(cmd), shell=True,
+            stdin=slaves[0], stdout=slaves[0], stderr=slaves[1]
         )
         for fd in slaves:
             # We don't provide any input, thus close
@@ -155,6 +159,24 @@ class BaseBackend(metaclass=abc.ABCMeta):
     @property
     def _default_options(self) -> Dict:
         return {}
+
+    def _wait_for_network(self):
+        self.log('Waiting for a network connection ...')
+        connected = False
+        retry_count = 25
+        network_probe = 'import urllib.request; urllib.request.urlopen("{}", timeout=5)' \
+            .format('http://start.ubuntu.com/connectivity-check.html')
+        while not connected:
+            time.sleep(1)
+            try:
+                result = self.exec('python3', '-c', "'" + network_probe + "'")
+                connected = result.exit_code == 0
+            except subprocess.CalledProcessError:
+                connected = False
+                retry_count -= 1
+                if retry_count == 0:
+                    raise NetworkError("No network connection")
+        self.log('Network connection established')
 
     @property
     def options(self) -> Dict:

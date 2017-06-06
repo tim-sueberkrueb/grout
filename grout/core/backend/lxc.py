@@ -95,7 +95,7 @@ class LXCBackend(base.BaseBackend):
 
     def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.CommandResult:
         cmd = base.Command(
-            ['lxc', 'exec', self._name], command, *args,
+            ['lxc', 'exec', self._name, '--'], command, *args,
             path=path, envvars=envvars, stdout=self.log, stderr=self.log
         )
         cmd.run()
@@ -111,24 +111,6 @@ class LXCBackend(base.BaseBackend):
     def pull(self, source: str, dest: str):
         source = source.lstrip('/')
         subprocess.check_call(['lxc', 'file', 'pull', '-r', self._name + '/' + source, dest])
-
-    def _wait_for_network(self):
-        self.log('Waiting for a network connection ...')
-        connected = False
-        retry_count = 25
-        network_probe = 'import urllib.request; urllib.request.urlopen("{}", timeout=5)' \
-            .format('http://start.ubuntu.com/connectivity-check.html')
-        while not connected:
-            time.sleep(1)
-            try:
-                result = self.exec('python3', '-c', network_probe)
-                connected = result.exit_code == 0
-            except subprocess.CalledProcessError:
-                connected = False
-                retry_count -= 1
-                if retry_count == 0:
-                    raise base.NetworkError("No network connection")
-        self.log('Network connection established')
 
     def _prepare(self):
         self.log('Preparing system ...')
