@@ -1,5 +1,5 @@
 name: project_schema
-desc: Grout declarative project files yaml schema
+desc: Grout project files schema
 type: map
 map:
   name:
