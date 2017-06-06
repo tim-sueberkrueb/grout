@@ -56,8 +56,15 @@ def load_project(filename: str) -> Project:
         data_jobs = data['jobs']
         for data_job in data_jobs:
             job_scripts = {}
-            source = data_job['source']
-            source_type = sources.source_type(source)
+            if 'source' not in data_job:
+                source = '.'
+                source_type = 'local'
+            else:
+                source = data_job['source']
+                if 'source-type' in data_job:
+                    source_type = data_job['source-type']
+                else:
+                    source_type = sources.source_type(source)
             if source_type == 'local':
                 source = os.path.abspath(os.path.join(filedir, source))
             if 'scripts' in data_job:
