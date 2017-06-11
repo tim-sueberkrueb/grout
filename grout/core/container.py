@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import subprocess
+import os
 
 from typing import Callable, Any, Dict, Tuple
 
@@ -20,7 +20,13 @@ class Container:
     def __init__(self, project_: project.Project,
                  backend_type: str = None, backend_options: Dict = None):
         self._project = project_
-        self._backend_type = backend_type or 'lxc'
+        if backend_type:
+            self._backend_type = backend_type
+        else:
+            if 'GROUT_DEFAULT_BACKEND' in os.environ:
+                self._backend_type = os.environ['GROUT_DEFAULT_BACKEND']
+            else:
+                self._backend_type = 'lxd'
         self._backend_class = backend.by_type(self._backend_type)
         self._backend = self._backend_class(self, backend_options)
 
