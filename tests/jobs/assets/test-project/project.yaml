@@ -1,7 +1,7 @@
 name: test-project
 jobs:
   - name: gnu-hello
-    type: snapcraft
+    extends: snapcraft
     source: .
     source-type: local
     scripts:

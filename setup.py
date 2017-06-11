@@ -22,7 +22,8 @@ setuptools.setup(
         'pylxd',
         'pyyaml',
         'click',
-        'pykwalify'
+        'pykwalify',
+        'pytest'
     ),
     test_suite='tests',
 )

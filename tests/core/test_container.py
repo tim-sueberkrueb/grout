@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import unittest
-
 import os.path
+import pytest
 
 from grout.core import Project
 from grout.core import Container, NotReadyError
 
 
-class ContainerTestCase(unittest.TestCase):
+class ContainerTestCase:
     _test_backend_options = {
         'name': 'test-case-container'
     }
@@ -19,8 +18,8 @@ class ContainerTestCase(unittest.TestCase):
         c = Container(
             p, backend_options=self._test_backend_options
         )
-        self.assertEqual(c.name, self._test_backend_options['name'])
-        self.assertFalse(c.ready)
+        assert c.name == self._test_backend_options['name']
+        assert not c.ready
 
     def test_run(self):
         # Setup
@@ -29,7 +28,7 @@ class ContainerTestCase(unittest.TestCase):
             p, backend_options=self._test_backend_options
         )
         c.init()
-        self.assertEqual(c.ready, True)
+        assert c.ready
         c.setup()
 
         # Test push/pull & exec
@@ -41,7 +40,7 @@ class ContainerTestCase(unittest.TestCase):
         c.push(filepath, '/home/grout/')
         c.exec('mv', '/home/grout/test.txt', '/home/grout/test2.txt')
         c.pull('/home/grout/test2.txt', self._temp_dir)
-        self.assertTrue(os.path.isfile(os.path.join(self._temp_dir, 'test2.txt')))
+        assert os.path.isfile(os.path.join(self._temp_dir, 'test2.txt'))
 
         # Finish
         c.perform()
@@ -49,15 +48,16 @@ class ContainerTestCase(unittest.TestCase):
 
         # Destroy
         c.destroy()
-        self.assertEqual(c.ready, False)
+        assert not c.ready
 
     def test_not_ready(self):
         p = Project()
         c = Container(p, backend_options=self._test_backend_options)
-        self.assertFalse(c.ready)
+        assert not c.ready
         methods = (
             c.run, c.setup, c.perform, c.finish,
             c.destroy, c.exec, c.push, c.pull
         )
         for m in methods:
-            self.assertRaises(NotReadyError, m)
+            with pytest.raises(NotReadyError):
+                m()
