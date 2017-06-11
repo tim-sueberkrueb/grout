@@ -2,6 +2,7 @@
 
 from typing import Dict, List
 
+import os
 import subprocess
 
 from . import base
@@ -51,7 +52,7 @@ class DockerBackend(base.BaseBackend):
     def _default_options(self) -> Dict:
         return {
             'name': self._gen_name(),
-            'image': 'ubuntu/xenial',
+            'image': 'ubuntu:xenial',
             'arch': 'amd64',
             'ephemeral': True
         }
@@ -67,7 +68,8 @@ class DockerBackend(base.BaseBackend):
             self.log('Creating and launching container ...')
             cmd = ['docker', 'create', '-it', '--name', self._name]
             if self._ephemeral:
-                cmd += ['--rm']
+                if 'GROUT_DOCKER_NO_RM_OPTION' not in os.environ:
+                    cmd += ['--rm']
             cmd += [self._image]
             subprocess.check_call(cmd)
         # Start the container (if not already running)
