@@ -1,0 +1,23 @@
+dist: trusty
+sudo: required
+services: [docker]
+
+language: python
+python: [3.5]
+
+before_install:
+  # Necessary for tests (unsquashfs)
+  - sudo apt-get install squashfs-tools
+  # Upgrade setuptools to recent
+  # version to prevent installation issues
+  - pip install --upgrade setuptools
+  # Workaround for setuptools failing
+  # correctly install pylxd
+  - pip install pylxd
+install:
+  - python setup.py -q install
+
+script:
+  - export GROUT_DEFAULT_BACKEND=docker
+  - export GROUT_DOCKER_NO_RM_OPTION=yes
+  - pytest
