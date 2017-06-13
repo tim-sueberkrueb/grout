@@ -22,7 +22,7 @@ python3 setup.py install
 *Note:* Grout is work in progress. API and supported features are subject to change without notice.
 
 Create a `project.yaml` file.
-```
+```yaml
 name: test-project
 summary: Test project
 description: A test project
