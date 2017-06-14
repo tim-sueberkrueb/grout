@@ -11,7 +11,7 @@ class _TestEnvironment(Environment):
         self.test_attribute = None
 
 
-class EnvironmentTestCase:
+class TestEnvironment:
     def test_scripts(self):
         test_string = 'Hello Environment'
         dummy_c = Container(Project())

@@ -7,7 +7,7 @@ from grout.core import Environment
 from grout.core import load_project
 
 
-class DeclarativeTestCase:
+class TestDeclarative:
     _test_backend_options = {
         'name': 'test-case-container'
     }

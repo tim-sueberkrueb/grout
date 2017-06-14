@@ -7,7 +7,7 @@ from grout.core import Project
 from grout.core import Container, NotReadyError
 
 
-class ContainerTestCase:
+class TestContainer:
     _test_backend_options = {
         'name': 'test-case-container'
     }
