@@ -28,7 +28,7 @@ def cli(project: str = None, artifacts: str = None, skip: Tuple[str] = None, ski
     """
     cwd = os.getcwd()
     if not project:
-        project = os.path.join(cwd, 'project.yaml')
+        project = os.path.join(cwd, 'baka.yml')
     if not os.path.isfile(project):
         raise click.ClickException('Project file "{}" does not exist.'.format(project))
     if not baka.core.backend.type_exists(backend):

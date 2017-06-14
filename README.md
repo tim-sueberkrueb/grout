@@ -21,7 +21,7 @@ python3 setup.py install
 
 *Note:* Baka is work in progress. API and supported features are subject to change without notice.
 
-Create a `project.yaml` file.
+Create a `baka.yml` file.
 ```yaml
 name: test-project
 summary: Test project

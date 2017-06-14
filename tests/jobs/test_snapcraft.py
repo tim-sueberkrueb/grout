@@ -15,6 +15,6 @@ class TestSnapcraft:
         project_path = os.path.join(self._assets_path, 'test-project')
         assert os.path.isdir(project_path)
         run_declarative(
-            os.path.join(project_path, 'project.yaml'),
+            os.path.join(project_path, 'baka.yml'),
             backend_options=self._test_backend_options
         )
