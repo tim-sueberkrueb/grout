@@ -11,6 +11,7 @@ import grout.core.backend
 
 @click.command()
 @click.option('--project', type=click.Path(dir_okay=False, exists=True), help='Path to project file')
+@click.option('--artifacts', type=click.Path(file_okay=False, writable=True), help='Path to write build artifacts to')
 @click.option('--skip', default=None, multiple=True, help='Skip a job by its name')
 @click.option('--skip-environment', flag_value=True, help='Skip environment setup')
 @click.option('--backend', default='lxc', type=click.Choice(('lxc', 'docker',)), help='Container backend to use')
@@ -18,7 +19,7 @@ import grout.core.backend
 @click.option('--image', help='Container backend image')
 @click.option('--arch', help='Container backend arch')
 @click.option('--persistent', flag_value=False, help='Set container persistent')
-def cli(project: str = None, skip: Tuple[str] = None, skip_environment: bool = False,
+def cli(project: str = None, artifacts: str = None, skip: Tuple[str] = None, skip_environment: bool = False,
         backend: str = 'lxc', name: str = None, image: str = None,
         arch: str = None, persistent: bool = False):
     """Grout a simple tool and library for continuous, clean builds.
@@ -32,6 +33,11 @@ def cli(project: str = None, skip: Tuple[str] = None, skip_environment: bool = F
         raise click.ClickException('Project file "{}" does not exist.'.format(project))
     if not grout.core.backend.type_exists(backend):
         raise click.ClickException('The requested container backend "{}" could not be found.'.format(backend))
+    if not artifacts:
+        artifacts = os.path.join(cwd, '.grout')
+    if not os.path.isdir(artifacts):
+        os.makedirs(artifacts, exist_ok=True)
+
     backend_options = {
         'name': name,
         'image': image,
@@ -40,7 +46,7 @@ def cli(project: str = None, skip: Tuple[str] = None, skip_environment: bool = F
     }
     grout.core.run_declarative(
         project, backend_type=backend, backend_options=backend_options,
-        skip_jobs=skip, skip_environment=skip_environment
+        skip_jobs=skip, skip_environment=skip_environment, artifacts_path=artifacts
     )
 
 

@@ -17,6 +17,7 @@ def run(project: Project, backend_type: str = None, backend_options: Dict = None
 
 
 def run_declarative(filename: str, backend_type: str = None, backend_options: Dict=None,
-                    skip_jobs: Tuple[str] = None, skip_environment: bool = True):
-    project = load_project(filename)
+                    skip_jobs: Tuple[str] = None, skip_environment: bool = True,
+                    artifacts_path: str = None):
+    project = load_project(filename, artifacts_path=artifacts_path)
     run(project, backend_type, backend_options, skip_jobs, skip_environment)

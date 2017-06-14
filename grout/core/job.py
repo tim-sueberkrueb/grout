@@ -9,15 +9,16 @@ from typing import List, Dict
 
 
 class Job(Scriptable):
-    _artifacts_path = '/tmp/grout'
     _home = '/home/grout'
 
-    def __init__(self, name: str, source: str, scripts: Dict[str, str]=None, envvars: Dict[str, str]=None):
+    def __init__(self, name: str, source: str, scripts: Dict[str, str]=None, envvars: Dict[str, str]=None,
+                 artifacts_path: str=None):
         super().__init__(scripts)
         self._name = name
         self._source = source
         self._source_type = 'local'
         self._envvars = envvars
+        self._artifacts_path = artifacts_path or '/tmp/grout'
         # Detect source type
         if self.source.endswith('.git'):
             self._source_type = 'git'

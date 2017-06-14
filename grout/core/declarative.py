@@ -31,7 +31,7 @@ def _validate(source_data: str):
     validator.validate(raise_exception=True)
 
 
-def load_project(filename: str) -> Project:
+def load_project(filename: str, artifacts_path: str=None) -> Project:
     filedir = os.path.dirname(filename)
 
     with open(filename, 'r') as file:
@@ -88,7 +88,8 @@ def load_project(filename: str) -> Project:
                 name=data_job['name'],
                 source=source,
                 scripts=job_scripts,
-                envvars=job_envvars
+                envvars=job_envvars,
+                artifacts_path=artifacts_path
             )
             jobs.append(job)
 
