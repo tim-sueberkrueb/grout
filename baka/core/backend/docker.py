@@ -68,7 +68,7 @@ class DockerBackend(base.BaseBackend):
             self.log('Creating and launching container ...')
             cmd = ['docker', 'create', '-it', '--name', self._name]
             if self._ephemeral:
-                if 'GROUT_DOCKER_NO_RM_OPTION' not in os.environ:
+                if 'BAKA_DOCKER_NO_RM_OPTION' not in os.environ:
                     cmd += ['--rm']
             cmd += [self._image]
             subprocess.check_call(cmd)

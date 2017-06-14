@@ -23,8 +23,8 @@ class Container:
         if backend_type:
             self._backend_type = backend_type
         else:
-            if 'GROUT_DEFAULT_BACKEND' in os.environ:
-                self._backend_type = os.environ['GROUT_DEFAULT_BACKEND']
+            if 'BAKA_DEFAULT_BACKEND' in os.environ:
+                self._backend_type = os.environ['BAKA_DEFAULT_BACKEND']
             else:
                 self._backend_type = 'lxc'
         self._backend_class = backend.by_type(self._backend_type)

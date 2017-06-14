@@ -18,6 +18,6 @@ install:
   - python setup.py -q install
 
 script:
-  - export GROUT_DEFAULT_BACKEND=docker
-  - export GROUT_DOCKER_NO_RM_OPTION=yes
+  - export BAKA_DEFAULT_BACKEND=docker
+  - export BAKA_DOCKER_NO_RM_OPTION=yes
   - pytest
