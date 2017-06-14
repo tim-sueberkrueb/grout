@@ -9,7 +9,7 @@ from typing import List, Dict
 
 
 class Job(Scriptable):
-    _home = '/home/grout'
+    _home = '/home/baka'
 
     def __init__(self, name: str, source: str, scripts: Dict[str, str]=None, envvars: Dict[str, str]=None,
                  artifacts_path: str=None):
@@ -18,7 +18,7 @@ class Job(Scriptable):
         self._source = source
         self._source_type = 'local'
         self._envvars = envvars
-        self._artifacts_path = artifacts_path or '/tmp/grout'
+        self._artifacts_path = artifacts_path or '/tmp/baka'
         # Detect source type
         if self.source.endswith('.git'):
             self._source_type = 'git'

@@ -5,8 +5,8 @@ import click
 
 from typing import Tuple
 
-import grout.core
-import grout.core.backend
+import baka.core
+import baka.core.backend
 
 
 @click.command()
@@ -22,19 +22,19 @@ import grout.core.backend
 def cli(project: str = None, artifacts: str = None, skip: Tuple[str] = None, skip_environment: bool = False,
         backend: str = 'lxc', name: str = None, image: str = None,
         arch: str = None, persistent: bool = False):
-    """Grout a simple tool and library for continuous, clean builds.
+    """Baka a simple tool and library for continuous, clean builds.
 
-    Grout was primarily created to be used in combination with Snapcraft.
+    Baka was primarily created to be used in combination with Snapcraft.
     """
     cwd = os.getcwd()
     if not project:
         project = os.path.join(cwd, 'project.yaml')
     if not os.path.isfile(project):
         raise click.ClickException('Project file "{}" does not exist.'.format(project))
-    if not grout.core.backend.type_exists(backend):
+    if not baka.core.backend.type_exists(backend):
         raise click.ClickException('The requested container backend "{}" could not be found.'.format(backend))
     if not artifacts:
-        artifacts = os.path.join(cwd, '.grout')
+        artifacts = os.path.join(cwd, '.baka')
     if not os.path.isdir(artifacts):
         os.makedirs(artifacts, exist_ok=True)
 
@@ -44,7 +44,7 @@ def cli(project: str = None, artifacts: str = None, skip: Tuple[str] = None, ski
         'arch': arch,
         'ephemeral': not persistent
     }
-    grout.core.run_declarative(
+    baka.core.run_declarative(
         project, backend_type=backend, backend_options=backend_options,
         skip_jobs=skip, skip_environment=skip_environment, artifacts_path=artifacts
     )

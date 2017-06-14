@@ -1,5 +1,5 @@
 name: project_schema
-desc: Grout project files schema
+desc: Baka project files schema
 type: map
 map:
   name:

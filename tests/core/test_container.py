@@ -3,15 +3,15 @@
 import os.path
 import pytest
 
-from grout.core import Project
-from grout.core import Container, NotReadyError
+from baka.core import Project
+from baka.core import Container, NotReadyError
 
 
 class TestContainer:
     _test_backend_options = {
         'name': 'test-case-container'
     }
-    _temp_dir = os.path.join('/tmp', 'grout-tests')
+    _temp_dir = os.path.join('/tmp', 'baka-tests')
 
     def test_options(self):
         p = Project()
@@ -37,9 +37,9 @@ class TestContainer:
             os.mkdir(self._temp_dir)
         with open(filepath, 'w') as file:
             file.write('lorem ipsum dolor sit amet')
-        c.push(filepath, '/home/grout/')
-        c.exec('mv', '/home/grout/test.txt', '/home/grout/test2.txt')
-        c.pull('/home/grout/test2.txt', self._temp_dir)
+        c.push(filepath, '/home/baka/')
+        c.exec('mv', '/home/baka/test.txt', '/home/baka/test2.txt')
+        c.pull('/home/baka/test2.txt', self._temp_dir)
         assert os.path.isfile(os.path.join(self._temp_dir, 'test2.txt'))
 
         # Finish

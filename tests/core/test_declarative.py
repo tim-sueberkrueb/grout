@@ -2,9 +2,9 @@
 
 import os.path
 
-from grout.core import Container
-from grout.core import Environment
-from grout.core import load_project
+from baka.core import Container
+from baka.core import Environment
+from baka.core import load_project
 
 
 class TestDeclarative:
@@ -29,11 +29,11 @@ class TestDeclarative:
         c = Container(p, backend_options=self._test_backend_options)
         c.init()
         c.setup()
-        c.exec('rm', '/home/grout/job_setup')
-        c.exec('rm', '/home/grout/environment_setup')
+        c.exec('rm', '/home/baka/job_setup')
+        c.exec('rm', '/home/baka/environment_setup')
         assert job.name == 'setup-name'
         c.perform()
-        c.exec('rm', '/home/grout/job_perform')
+        c.exec('rm', '/home/baka/job_perform')
         c.finish()
-        c.exec('rm', '/home/grout/job_finish')
+        c.exec('rm', '/home/baka/job_finish')
         c.destroy()

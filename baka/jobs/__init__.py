@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from grout.core.job import Job
+from baka.core.job import Job
 from .snapcraft import SnapcraftJob
 
 

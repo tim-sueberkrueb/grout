@@ -4,19 +4,19 @@
 import setuptools
 
 setuptools.setup(
-    name='grout',
+    name='baka',
     version='0.1.0',
-    description='Grout tool and library for continuous, clean builds',
+    description='Baka tool and library for continuous, clean builds',
     license='MIT',
     author='Tim Süberkrüb',
     author_email='dev@timsueberkrueb.io',
     url='https://www.github.com/tim-sueberkrueb',
     packages=setuptools.find_packages(),
     package_data={
-        'grout.core': ('validation/project_schema.yaml',)
+        'baka.core': ('validation/project_schema.yaml',)
     },
     scripts=(
-        'bin/grout',
+        'bin/baka',
     ),
     install_requires=(
         'pylxd',

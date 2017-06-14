@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from grout.core import Environment
-from grout.core import Container
-from grout.core import Project
+from baka.core import Environment
+from baka.core import Container
+from baka.core import Project
 
 
 class _TestEnvironment(Environment):

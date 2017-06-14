@@ -2,7 +2,7 @@
 
 import os.path
 
-from grout.core import run_declarative
+from baka.core import run_declarative
 
 
 class TestSnapcraft:

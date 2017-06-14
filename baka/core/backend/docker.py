@@ -106,7 +106,7 @@ class DockerBackend(base.BaseBackend):
 
     def _prepare(self):
         self.log('Preparing system ...')
-        assert self.exec('mkdir', '-p', '/home/grout').exit_code == 0
+        assert self.exec('mkdir', '-p', '/home/baka').exit_code == 0
         self.log('Updating and upgrading system ...')
         assert self.exec('apt-get', 'update').exit_code == 0
         assert self.exec('apt-get', 'update').exit_code == 0
@@ -138,8 +138,8 @@ class DockerBackend(base.BaseBackend):
     def _gen_name(self):
         no = 0
         forgiven = self._forgiven_names()
-        name = 'grout-whale-0'
+        name = 'baka-whale-0'
         while name in forgiven:
-            name = 'grout-whale-' + str(no)
+            name = 'baka-whale-' + str(no)
             no += 1
         return name

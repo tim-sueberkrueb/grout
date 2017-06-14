@@ -125,7 +125,7 @@ class LXCBackend(base.BaseBackend):
 
     def _prepare(self):
         self.log('Preparing system ...')
-        assert self.exec('mkdir', '-p', '/home/grout').exit_code == 0
+        assert self.exec('mkdir', '-p', '/home/baka').exit_code == 0
         self.log('Updating and upgrading system ...')
         assert self.exec('apt-get', 'update').exit_code == 0
         assert self.exec('apt-get', 'update').exit_code == 0
@@ -140,8 +140,8 @@ class LXCBackend(base.BaseBackend):
     def _gen_name(self):
         no = 0
         forgiven = self._forgiven_names()
-        name = 'grout-builder-0'
+        name = 'baka-builder-0'
         while name in forgiven:
-            name = 'grout-builder-' + str(no)
+            name = 'baka-builder-' + str(no)
             no += 1
         return name

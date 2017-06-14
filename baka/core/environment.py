@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from grout.core.scriptable import Scriptable
-from grout.core.container import Container
+from baka.core.scriptable import Scriptable
+from baka.core.container import Container
 
 from typing import Dict
 
