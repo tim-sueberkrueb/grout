@@ -6,6 +6,7 @@ import subprocess
 import pylxd
 
 from . import base
+from . import _utils
 
 
 class LXCCommand(base.BaseCommand):
@@ -53,7 +54,7 @@ class LXCBackend(base.BaseBackend):
         return {
             'name': self._gen_name(),
             'image': 'ubuntu:xenial',
-            'arch': 'amd64',
+            'arch': _utils.debian_architecture(),
             'ephemeral': True
         }
 

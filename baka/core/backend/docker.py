@@ -6,6 +6,7 @@ import os
 import subprocess
 
 from . import base
+from . import _utils
 
 
 class DockerCommand(base.BaseCommand):
@@ -53,7 +54,7 @@ class DockerBackend(base.BaseBackend):
         return {
             'name': self._gen_name(),
             'image': 'ubuntu:xenial',
-            'arch': 'amd64',
+            'arch': _utils.debian_architecture(),
             'ephemeral': True
         }
 
