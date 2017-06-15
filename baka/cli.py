@@ -18,7 +18,7 @@ import baka.core.backend
 @click.option('--name', help='Container backend name')
 @click.option('--image', help='Container backend image')
 @click.option('--arch', help='Container backend arch')
-@click.option('--persistent', flag_value=False, help='Set container persistent')
+@click.option('--persistent', flag_value=True, help='Set container persistent')
 def cli(project: str = None, artifacts: str = None, skip: Tuple[str] = None, skip_environment: bool = False,
         backend: str = 'lxc', name: str = None, image: str = None,
         arch: str = None, persistent: bool = False):
