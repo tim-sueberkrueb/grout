@@ -29,9 +29,10 @@ description: A test project
 environment:
   scripts:  # Use Python scripts to setup the build environment
     setup: |
+      baka = require('baka', '0.1.0')
       print("setup")
       # Execute commands inside the build container
-      container.exec("touch", "/home/baka/environment_setup")
+      baka.run("touch", "/home/baka/environment_setup")
 jobs:
   - name: my-job
     type: base  # You can use pre-defined jobs (e.g. snapcraft)
@@ -39,13 +40,14 @@ jobs:
     scripts:
       setup: |  # Run optional scripts for all build steps
         print("setup")
-        baka
       perform: |
+        baka = require('baka', '0.1.0')
         print("perform")
-        container.exec("touch", "/home/baka/job_perform")
+        baka.run("touch", "/home/baka/job_perform")
       finish: |
+        baka = require('baka', '0.1.0')
         print("finish")
-        container.exec("touch", "/home/baka/job_finish")
+        baka.run("touch", "/home/baka/job_finish")
 ```
 Use the baka tool to run all jobs
 ```sh

@@ -31,7 +31,6 @@ class TestDeclarative:
         c.setup()
         c.exec('rm', '/home/baka/job_setup')
         c.exec('rm', '/home/baka/environment_setup')
-        assert job.name == 'setup-name'
         c.perform()
         c.exec('rm', '/home/baka/job_perform')
         c.finish()

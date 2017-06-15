@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-
-from .scriptable import Scriptable
-from .container import Container
-
 from typing import List, Dict
+
+from baka.core.scripting import Scriptable
+from .container import Container
 
 
 class Job(Scriptable):
@@ -36,6 +35,10 @@ class Job(Scriptable):
     @property
     def source(self) -> str:
         return self._source
+
+    @property
+    def artifacts_path(self) -> str:
+        return self._artifacts_path
 
     @property
     def artifacts(self) -> List[str]:

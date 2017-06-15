@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from baka.core.scriptable import Scriptable
+from baka.core.scripting import Scriptable
 from baka.core.container import Container
 
 from typing import Dict

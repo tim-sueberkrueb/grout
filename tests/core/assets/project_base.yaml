@@ -4,16 +4,19 @@ description: A test project
 environment:
   scripts:
     setup: |
-      container.exec("touch", "/home/baka/environment_setup")
+      baka = require('baka', '0.1.0')
+      baka.run("touch", "/home/baka/environment_setup")
 jobs:
   - name: job0
-    type: base
+    extends: base
     source: .
     scripts:
       setup: |
-        container.exec("touch", "/home/baka/job_setup")
-        this._name = "setup" + "-" + "name"
+        baka = require('baka', '0.1.0')
+        baka.run("touch", "/home/baka/job_setup")
       perform: |
-        container.exec("touch", "/home/baka/job_perform")
+        baka = require('baka', '0.1.0')
+        baka.run("touch", "/home/baka/job_perform")
       finish: |
-        container.exec("touch", "/home/baka/job_finish")
+        baka = require('baka', '0.1.0')
+        baka.run("touch", "/home/baka/job_finish")

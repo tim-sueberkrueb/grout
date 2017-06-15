@@ -6,17 +6,19 @@ jobs:
     source-type: local
     scripts:
       finish: |
+        baka = require('baka', '0.1.0')
+
         import subprocess
         import os.path
 
-        assert len(this.artifacts) == 1
+        assert len(baka.artifacts) == 1
 
-        extracted_contents_path = os.path.join(this._artifacts_path, 'snap_contents')
+        extracted_contents_path = os.path.join(baka.artifacts_path, 'snap_contents')
 
         subprocess.check_call([
           'unsquashfs', '-f', '-d',
           extracted_contents_path,
-          this.artifacts[0]
+          baka.artifacts[0]
         ])
 
         assert os.path.isdir(os.path.join(extracted_contents_path, 'bin'))
