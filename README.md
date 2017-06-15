@@ -35,7 +35,7 @@ environment:
       baka.run("touch", "/home/baka/environment_setup")
 jobs:
   - name: my-job
-    type: base  # You can use pre-defined jobs (e.g. snapcraft)
+    extends: base  # You can use pre-defined jobs (e.g. snapcraft)
     source: .
     scripts:
       setup: |  # Run optional scripts for all build steps
