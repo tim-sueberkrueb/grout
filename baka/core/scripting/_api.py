@@ -15,13 +15,13 @@ class APIError(Exception):
 
 def since(version: str):
     def _since(f):
-        def wrapper(self, *args):
+        def wrapper(self, *args, **kwargs):
             if StrictVersion(self._version) < StrictVersion(version):
                 raise APIError(
                     'Method baka.{} is not supported in {}'.format(
                         f.__name__, repr(self._version)
                     ))
-            return f(self, *args)
+            return f(self, *args, **kwargs)
 
         return wrapper
 
