@@ -14,6 +14,8 @@ before_install:
   # Workaround for setuptools failing
   # correctly install pylxd
   - pip install pylxd
+  # Install pycodestyle
+  - pip install pycodestyle
 install:
   - python setup.py -q install
 
