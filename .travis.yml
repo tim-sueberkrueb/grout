@@ -18,6 +18,7 @@ install:
   - python setup.py -q install
 
 script:
+  - ./checkcodestyle.py
   - export BAKA_DEFAULT_BACKEND=docker
   - export BAKA_DOCKER_NO_RM_OPTION=yes
   - pytest
