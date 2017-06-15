@@ -92,8 +92,12 @@ class Container:
         self._backend.destroy()
 
     @_require_ready
-    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> backend.CommandResult:
-        return self._backend.exec(command, *args, path=path, envvars=envvars)
+    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None,
+             collect_output: bool = False, log_output: bool = True) -> backend.CommandResult:
+        return self._backend.exec(
+            command, *args, path=path, envvars=envvars, collect_output=collect_output,
+            log_output=log_output
+        )
 
     def log(self, *fragments):
         print(*fragments, end='' if fragments[-1].endswith('\n') else '\n')

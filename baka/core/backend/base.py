@@ -35,15 +35,15 @@ class CommandResult:
 
 class BaseCommand(abc.ABC):
     def __init__(self, container_name: str, command: str, *args, path: str = None, envvars: Dict[str, str]=None,
-                 stdout: Callable=None, stderr: Callable=None):
+                 stdout: Callable=None, stderr: Callable=None, collect_output: bool = False):
         self._exit_code = -1
         self._output = ''
+        self._collect_output = collect_output
         self._container_name = container_name
         self._command = command
         self._args = list(args)
         self._path = path
         self._env = envvars or {}
-        self._expand_env()
         self._stdout = stdout
         self._stderr = stderr
 
@@ -82,7 +82,12 @@ class BaseCommand(abc.ABC):
                         del readable[fd]
                     else:
                         try:
-                            readable[fd](data.decode())
+                            decoded = data.decode()
+                            if self._collect_output:
+                                self._output += decoded
+                            f = readable[fd]
+                            if f is not None:
+                                f(decoded)
                         except UnicodeDecodeError as e:
                             # Ignore not decodable data with a warning
                             print('Warning (detected not decodable data): ' + str(e))
@@ -91,20 +96,6 @@ class BaseCommand(abc.ABC):
         for fd in masters:
             os.close(fd)
         self._exit_code = proc.wait()
-
-    def _expand_env(self):
-        default_env = {
-            'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-        }
-        for var in self._env.keys():
-            val = self._env[var]
-            for def_var in default_env.keys():
-                def_val = default_env[def_var]
-                val = val.replace('${}'.format(def_var), def_val)
-            for custom_var in self._env.keys():
-                custom_val = self._env[custom_var]
-                val = val.replace('${}'.format(custom_var), custom_val)
-            self._env[var] = val.rstrip(':')
 
     @property
     def exit_code(self) -> int:
@@ -164,7 +155,10 @@ class BaseBackend(metaclass=abc.ABCMeta):
         while not connected:
             time.sleep(1)
             try:
-                result = self.exec('python3', '-c', "'" + network_probe + "'")
+                result = self.exec(
+                    'python3', '-c', "'" + network_probe + "'",
+                    collect_output=False, log_output=False
+                )
                 connected = result.exit_code == 0
             except subprocess.CalledProcessError:
                 connected = False
@@ -172,6 +166,31 @@ class BaseBackend(metaclass=abc.ABCMeta):
                 if retry_count == 0:
                     raise NetworkError("No network connection")
         self.log('Network connection established')
+
+    def _envvars(self) -> Dict[str, str]:
+        script = 'import os; print(repr(dict(os.environ)))'
+        result = self.exec(
+            'python3', '-c', "'" + script + "'",
+            expand_envvars=False, collect_output=True, log_output=False
+        )
+        envvars = eval(result.output)
+        return envvars
+
+    def _expand_envvars(self, envvars: Dict[str, str]) -> Dict[str, str]:
+        container_env = self._envvars()
+        # Expand a copy of the received dictionary
+        # to avoid confusion.
+        envvars = envvars.copy()
+        for var in envvars.keys():
+            val = envvars[var]
+            for def_var in container_env.keys():
+                def_val = container_env[def_var]
+                val = val.replace('${}'.format(def_var), def_val)
+            for custom_var in envvars.keys():
+                custom_val = envvars[custom_var]
+                val = val.replace('${}'.format(custom_var), custom_val)
+            envvars[var] = val.rstrip(':')
+        return envvars
 
     @property
     def options(self) -> Dict:
@@ -193,7 +212,8 @@ class BaseBackend(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> CommandResult:
+    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None,
+             expand_envvars: bool = True, collect_output: bool = False, log_output: bool = True) -> CommandResult:
         raise NotImplementedError()
 
     @abc.abstractmethod

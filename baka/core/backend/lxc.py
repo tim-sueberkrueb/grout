@@ -105,10 +105,17 @@ class LXCBackend(base.BaseBackend):
         subprocess.check_call(['lxc', 'delete', '-f', self._name])
         self._ready = False
 
-    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None) -> base.CommandResult:
+    def exec(self, command, *args, path: str = None, envvars: Dict[str, str]=None,
+             expand_envvars: bool = True, collect_output: bool = False, log_output: bool = True) -> base.CommandResult:
+        if expand_envvars and envvars:
+            envvars = self._expand_envvars(envvars)
+        stdout = self.log if log_output else None
+        stderr = self.log if log_output else None
         cmd = LXCCommand(
             self._name, command, *args,
-            path=path, envvars=envvars, stdout=self.log, stderr=self.log
+            path=path, envvars=envvars,
+            stdout=stdout, stderr=stderr,
+            collect_output=collect_output
         )
         cmd.run()
         return cmd.result

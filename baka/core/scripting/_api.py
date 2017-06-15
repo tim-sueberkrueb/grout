@@ -63,8 +63,11 @@ class API:
         return self._job.artifacts_path
 
     @since('0.1.0')
-    def run(self, command, *args, path: str = None, envvars: Dict[str, str] = None) -> RunResult:
-        cmd_result = self._container.exec(command, *args, path=path, envvars=envvars)
+    def run(self, command, *args, path: str = None, envvars: Dict[str, str] = None,
+            collect_output: bool = False, log_output: bool = True) -> RunResult:
+        cmd_result = self._container.exec(
+            command, *args, path=path, envvars=envvars, collect_output=collect_output, log_output=log_output
+        )
         run_result = RunResult(
             output=cmd_result.output,
             exit_code=cmd_result.exit_code
