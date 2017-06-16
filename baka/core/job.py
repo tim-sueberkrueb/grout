@@ -8,7 +8,7 @@ from .container import Container
 
 
 class Job(Scriptable):
-    _home = '/home/baka'
+    home_path = '/home/baka'
 
     def __init__(self, name: str, source: str, scripts: Dict[str, str]=None, envvars: Dict[str, str]=None,
                  artifacts_path: str=None):
@@ -47,18 +47,18 @@ class Job(Scriptable):
     def setup(self, c: Container, run_script=True):
         c.log('Setting up {} ...'.format(self._name))
         # Default preparation steps
-        c.log('Cleaning up {} ...'.format(self._path))
-        c.exec('rm', '-rf', self._path)
+        c.log('Cleaning up {} ...'.format(self.path))
+        c.exec('rm', '-rf', self.path)
         # Preparing source
         if self._source_type == 'git':
             c.log('Cloning source repository ...')
-            c.exec('git', 'clone', self._source, self._path)
+            c.exec('git', 'clone', self._source, self.path)
         elif self._source_type == 'local':
             c.log('Copying sources to container ...')
-            c.push(self._source, os.path.join(self._path, '..'))
+            c.push(self._source, os.path.join(self.path, '..'))
             source_dir = self._source[self.source.rfind('/')+1:]
             if self._name != source_dir:
-                c.exec('mv', os.path.join(self._home, source_dir), self._path)
+                c.exec('mv', os.path.join(self.home_path, source_dir), self.path)
         # Run script
         if run_script:
             self._run_script('setup', c)
@@ -76,11 +76,11 @@ class Job(Scriptable):
             self._run_script('finish', c)
 
     @property
-    def _path(self) -> str:
-        return os.path.join(self._home, self._name)
+    def path(self) -> str:
+        return os.path.join(self.home_path, self._name)
 
     def _path_join(self, path) -> str:
-        return os.path.join(self._path, path)
+        return os.path.join(self.path, path)
 
     def _add_artifact(self, filepath: str):
         self._artifacts.append(filepath)

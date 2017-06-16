@@ -11,14 +11,14 @@ jobs:
         import subprocess
         import os.path
 
-        assert len(baka.artifacts) == 1
+        assert len(baka.host.artifacts) == 1
 
-        extracted_contents_path = os.path.join(baka.artifacts_path, 'snap_contents')
+        extracted_contents_path = os.path.join(baka.host.artifacts_path, 'snap_contents')
 
         subprocess.check_call([
           'unsquashfs', '-f', '-d',
           extracted_contents_path,
-          baka.artifacts[0]
+          baka.host.artifacts[0]
         ])
 
         assert os.path.isdir(os.path.join(extracted_contents_path, 'bin'))

@@ -7,6 +7,9 @@ from typing import Dict
 
 
 class Environment(Scriptable):
+    home_path = '/home/baka'
+    path = '/home/baka'
+
     def __init__(self, scripts: Dict[str, str]=None):
         super().__init__(scripts)
 

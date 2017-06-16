@@ -5,7 +5,7 @@ environment:
   scripts:
     setup: |
       baka = require('baka', '0.1.0')
-      baka.run("touch", "/home/baka/environment_setup")
+      baka.box.run("touch", "/home/baka/environment_setup")
 jobs:
   - name: job0
     extends: base
@@ -13,10 +13,10 @@ jobs:
     scripts:
       setup: |
         baka = require('baka', '0.1.0')
-        baka.run("touch", "/home/baka/job_setup")
+        baka.box.run("touch", "/home/baka/job_setup")
       perform: |
         baka = require('baka', '0.1.0')
-        baka.run("touch", "/home/baka/job_perform")
+        baka.box.run("touch", "/home/baka/job_perform")
       finish: |
         baka = require('baka', '0.1.0')
-        baka.run("touch", "/home/baka/job_finish")
+        baka.box.run("touch", "/home/baka/job_finish")

@@ -28,17 +28,24 @@ def since(version: str):
     return _since
 
 
-class API:
-    _module_name = 'baka'
+class BaseAPI:
+    _module_name = 'unknown'
     _supported_versions = ('0.1.0',)
 
-    def __init__(self, version: str, backend: dict):
+    def __init__(self, version: str):
         if version not in self._supported_versions:
             raise APIError(
                 'Version {} of module {} is not supported'.format(
                     repr(version), repr(self._module_name)
                 ))
         self._version = version
+
+
+class ContainerAPI(BaseAPI):
+    _module_name = 'baka.box'
+
+    def __init__(self, version: str, backend: dict):
+        super().__init__(version)
         self._container = backend['container']
         self._job = backend['job']
 
@@ -54,17 +61,19 @@ class API:
 
     @property
     @since('0.1.0')
-    def artifacts(self) -> Iterable:
-        return self._job.artifacts
+    def home_path(self) -> str:
+        return self._job.home_path
 
     @property
     @since('0.1.0')
-    def artifacts_path(self) -> str:
-        return self._job.artifacts_path
+    def job_path(self):
+        return self._job.path
 
     @since('0.1.0')
     def run(self, command, *args, path: str = None, envvars: Dict[str, str] = None,
             collect_output: bool = False, log_output: bool = True) -> RunResult:
+        if not path:
+            path = self.job_path
         cmd_result = self._container.exec(
             command, *args, path=path, envvars=envvars, collect_output=collect_output, log_output=log_output
         )
@@ -73,6 +82,35 @@ class API:
             exit_code=cmd_result.exit_code
         )
         return run_result
+
+
+class HostAPI(BaseAPI):
+    _module_name = 'baka.host'
+
+    def __init__(self, version: str, backend: dict):
+        super().__init__(version)
+        self._container = backend['container']
+        self._job = backend['job']
+
+    @property
+    @since('0.1.0')
+    def artifacts_path(self) -> str:
+        return self._job.artifacts_path
+
+    @property
+    @since('0.1.0')
+    def artifacts(self) -> Iterable[str]:
+        return self._job.artifacts
+
+
+class API(BaseAPI):
+    _module_name = 'baka'
+
+    def __init__(self, version: str, backend: dict):
+        super().__init__(version)
+        self.box = ContainerAPI(version, backend)
+        self.host = HostAPI(version, backend)
+        self._container = backend['container']
 
     @since('0.1.0')
     def log(self, *fragments):

@@ -24,7 +24,7 @@ class SnapcraftJob(Job):
 
     def perform(self, c: Container, run_script: bool=True):
         super().perform(c, run_script=False)
-        c.exec('snapcraft', 'snap', '-o', self._snap_filename, path=self._path, envvars=self._envvars)
+        c.exec('snapcraft', 'snap', '-o', self._snap_filename, path=self.path, envvars=self._envvars)
         # Run script
         if run_script:
             self._run_script('perform', c)
@@ -32,7 +32,7 @@ class SnapcraftJob(Job):
     def finish(self, c: Container, run_script: bool=True):
         super().finish(c, run_script=False)
         artifact_filename = os.path.join(self._artifacts_path, self._snap_filename)
-        c.pull(os.path.join(self._path, self._snap_filename), self._artifacts_path)
+        c.pull(os.path.join(self.path, self._snap_filename), self._artifacts_path)
         self._add_artifact(artifact_filename)
         # Run script
         if run_script:
