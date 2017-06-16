@@ -32,7 +32,7 @@ class DockerBackend(base.BaseBackend):
         self._image = self._options['image']
         self._arch = self._options['arch']
         self._ephemeral = self._options['ephemeral']
-        if options['nesting']:
+        if self._options['nesting']:
             raise base.CompatibilityError('Nesting is not supported in Docker.')
 
     @property
@@ -57,7 +57,8 @@ class DockerBackend(base.BaseBackend):
             'name': self._gen_name(),
             'image': 'ubuntu:xenial',
             'arch': _utils.debian_architecture(),
-            'ephemeral': True
+            'ephemeral': True,
+            'nesting': False
         }
 
     def init(self):
