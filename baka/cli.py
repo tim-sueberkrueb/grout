@@ -19,9 +19,10 @@ import baka.core.backend
 @click.option('--image', help='Container backend image')
 @click.option('--arch', help='Container backend arch')
 @click.option('--persistent', flag_value=True, help='Set container persistent')
+@click.option('--nesting', flag_value=True, help='Allow container nesting (lxc only)')
 def cli(project: str = None, artifacts: str = None, skip: Tuple[str] = None, skip_environment: bool = False,
         backend: str = 'lxc', name: str = None, image: str = None,
-        arch: str = None, persistent: bool = False):
+        arch: str = None, persistent: bool = False, nesting: bool = False):
     """Baka a simple tool and library for continuous, clean builds.
 
     Baka was primarily created to be used in combination with Snapcraft.
@@ -37,12 +38,14 @@ def cli(project: str = None, artifacts: str = None, skip: Tuple[str] = None, ski
         artifacts = os.path.join(cwd, '.baka')
     if not os.path.isdir(artifacts):
         os.makedirs(artifacts, exist_ok=True)
-
+    if nesting and backend != 'lxc':
+        raise click.ClickException('Nesting is only supported in for LXC containers.')
     backend_options = {
         'name': name,
         'image': image,
         'arch': arch,
-        'ephemeral': not persistent
+        'ephemeral': not persistent,
+        'nesting': nesting
     }
     baka.core.run_declarative(
         project, backend_type=backend, backend_options=backend_options,

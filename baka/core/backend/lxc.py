@@ -32,6 +32,7 @@ class LXCBackend(base.BaseBackend):
         self._image = self._options['image']
         self._arch = self._options['arch']
         self._ephemeral = self._options['ephemeral']
+        self._nesting = self._options['nesting']
 
     @property
     def name(self) -> str:
@@ -55,7 +56,8 @@ class LXCBackend(base.BaseBackend):
             'name': self._gen_name(),
             'image': 'ubuntu:xenial',
             'arch': _utils.debian_architecture(),
-            'ephemeral': True
+            'ephemeral': True,
+            'nesting': False
         }
 
     def init(self):
@@ -76,6 +78,8 @@ class LXCBackend(base.BaseBackend):
             ]
             if self._ephemeral:
                 cmd += ['-e']
+            if self._nesting:
+                cmd += ['-c', 'security.nesting=true']
             subprocess.check_call(cmd)
             self._lxd_container = self._lxd.containers.get(self._name)
         # Configure container

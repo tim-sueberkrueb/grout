@@ -11,6 +11,10 @@ import subprocess
 import time
 
 
+class CompatibilityError(Exception):
+    pass
+
+
 class NotReadyError(Exception):
     pass
 

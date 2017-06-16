@@ -32,6 +32,8 @@ class DockerBackend(base.BaseBackend):
         self._image = self._options['image']
         self._arch = self._options['arch']
         self._ephemeral = self._options['ephemeral']
+        if options['nesting']:
+            raise base.CompatibilityError('Nesting is not supported in Docker.')
 
     @property
     def name(self) -> str:
