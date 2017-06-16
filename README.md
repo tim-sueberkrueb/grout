@@ -32,7 +32,7 @@ environment:
       baka = require('baka', '0.1.0')
       print("setup")
       # Execute commands inside the build container
-      baka.run("touch", "/home/baka/environment_setup")
+      baka.box.run("touch", "/home/baka/environment_setup")
 jobs:
   - name: my-job
     extends: base  # You can use pre-defined jobs (e.g. snapcraft)
@@ -43,11 +43,11 @@ jobs:
       perform: |
         baka = require('baka', '0.1.0')
         print("perform")
-        baka.run("touch", "/home/baka/job_perform")
+        baka.box.run("touch", "/home/baka/job_perform")
       finish: |
         baka = require('baka', '0.1.0')
         print("finish")
-        baka.run("touch", "/home/baka/job_finish")
+        baka.box.run("touch", "/home/baka/job_finish")
 ```
 Use the baka tool to run all jobs
 ```sh
