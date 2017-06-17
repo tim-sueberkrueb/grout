@@ -7,15 +7,12 @@ from baka.core import Container
 
 
 class SnapcraftJob(Job):
-    _snap_filename = 'target.snap'
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._snap_filename = 'snapcraft_{}.snap'.format(self.name)
 
     def setup(self, c: Container, run_script: bool=True):
         super().setup(c, run_script=False)
-        # Set snap name
-        self._snap_filename = 'snapcraft_{}_{}.snap'.format(self.name, c.arch)
         c.log('Installing snapcraft ...')
         c.exec('apt-get', 'install', '-y', 'snapcraft')
         # Run script
